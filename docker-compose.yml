@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  vps:
+    image: tianon/qemu
+    container_name: vps-local
+    privileged: true
+    ports:
+      - "6080:6080"
+      - "5900:5900"
+    volumes:
+      - ./data:/data
+    environment:
+      - VNC_PASSWORD=tiendung
+    command: >
+      sh -c "
+      qemu-system-x86_64
+      -hda /data/vps.img
+      -m 2048
+      -smp 2
+      -vnc :0,password
+      -usbdevice tablet
+      -net nic -net user
+      "
+    restart: unless-stopped
+
+  novnc:
+    image: theasp/novnc:latest
+    container_name: novnc
+    ports:
+      - "6080:8080"
+    environment:
+      - DISPLAY_WIDTH=1024
+      - DISPLAY_HEIGHT=768
+      - RUN_XTERM=no
+    depends_on:
+      - vps
+    restart: unless-stopped
